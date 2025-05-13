@@ -1,18 +1,20 @@
 pub mod player;
+pub mod world;
 
 use bevy::prelude::*;
 use bevy_ecs_ldtk::LdtkPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use player::PlayerPlugin;
+use world::WorldPlugin;
 
 pub static IS_DEBUG: bool = cfg!(debug_assertions);
 
 fn main() -> AppExit {
     let mut app = App::new();
 
-    app.add_plugins(DefaultPlugins)
+    app.add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(LdtkPlugin)
-        .add_plugins(PlayerPlugin);
+        .add_plugins((PlayerPlugin, WorldPlugin));
 
     if IS_DEBUG {
         warn!("This game was built for debug!");
