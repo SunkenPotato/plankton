@@ -1,3 +1,4 @@
+pub mod macros;
 pub mod player;
 pub mod world;
 

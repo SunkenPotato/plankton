@@ -76,8 +76,8 @@ impl Controller {
     fn apply(&mut self, linear_velocity: &mut LinearVelocity, delta: f32) {
         self.action
             .as_ref()
-            .inspect(|a| Self::__apply(linear_velocity, delta, a))
-            .take();
+            .inspect(|a| Self::__apply(linear_velocity, delta, a));
+        self.action.take();
     }
 
     fn __apply(linear_velocity: &mut LinearVelocity, delta: f32, action: &WalkAction) {

@@ -6,11 +6,12 @@ use bevy::{
 };
 use bevy_ecs_ldtk::{LdtkWorldBundle, LevelSelection};
 
-#[cfg(debug_assertions)]
-pub static WORLD_PATH: &'static str = "world/testworld.ldtk";
+use crate::debug_value;
 
-#[cfg(not(debug_assertions))]
-pub static WORLD_PATH: &'static str = compile_error!("There is no world file at this release yet.");
+pub static WORLD_PATH: &str = debug_value!(
+    "world/testworld.ldtk",
+    compile_error!("There is no world yet.")
+);
 
 pub struct WorldPlugin;
 
