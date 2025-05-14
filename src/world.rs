@@ -7,7 +7,7 @@ use bevy::{
 use bevy_ecs_ldtk::{LdtkWorldBundle, LevelSelection};
 
 #[cfg(debug_assertions)]
-pub static WORLD_PATH: &'static str = "world/world.ldtk";
+pub static WORLD_PATH: &'static str = "world/testworld.ldtk";
 
 #[cfg(not(debug_assertions))]
 pub static WORLD_PATH: &'static str = compile_error!("There is no world file at this release yet.");
