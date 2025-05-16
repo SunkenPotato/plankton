@@ -1,4 +1,4 @@
-use avian2d::prelude::{LinearVelocity, RigidBody};
+use avian2d::prelude::{Collider, Friction, LinearVelocity, Restitution, RigidBody};
 use bevy::{
     app::{FixedUpdate, Plugin, Startup, Update},
     core_pipeline::core_2d::Camera2d,
@@ -16,8 +16,11 @@ use bevy::{
     sprite::Sprite,
     time::Time,
     transform::components::Transform,
+    utils::default,
 };
-use bevy_ecs_ldtk::{LdtkEntity, app::LdtkEntityAppExt};
+use bevy_ecs_ldtk::app::LdtkEntityAppExt;
+
+use crate::world::{FRICTION, RESTITUTION};
 
 pub static PLAYER_PATH: &str = "player/player.png";
 pub static PLAYER_LDTK_IDENT: &str = "Player";
@@ -29,6 +32,7 @@ const KEY_RIGHT: KeyCode = KeyCode::KeyD;
 
 const SPEED: f32 = 30.;
 const ACCELERATION: f32 = 10.;
+const ACC_MULTIPLE_UPWARDS: f32 = 2.;
 
 pub struct PlayerPlugin;
 
@@ -50,13 +54,37 @@ impl Plugin for PlayerPlugin {
 #[require(Sprite)]
 struct Player;
 
-#[derive(LdtkEntity, Default, Bundle)]
+#[derive(Default, Bundle)]
 pub struct PlayerBundle {
     _p: Player,
-    #[sprite]
     sprite: Sprite,
     controller: Controller,
     rigid_body: RigidBody,
+    friction: Friction,
+    restitution: Restitution,
+    collider: Collider,
+}
+
+impl bevy_ecs_ldtk::prelude::LdtkEntity for PlayerBundle {
+    fn bundle_entity(
+        entity_instance: &bevy_ecs_ldtk::prelude::EntityInstance,
+        _: &bevy_ecs_ldtk::prelude::LayerInstance,
+        tileset: Option<&bevy::prelude::Handle<bevy::prelude::Image>>,
+        _: Option<&bevy_ecs_ldtk::prelude::TilesetDefinition>,
+        _: &bevy::prelude::AssetServer,
+        _: &mut bevy::prelude::Assets<bevy::prelude::TextureAtlasLayout>,
+    ) -> Self {
+        Self {
+            sprite: bevy_ecs_ldtk::utils::sprite_from_entity_info(tileset),
+            collider: Collider::rectangle(
+                entity_instance.height as f32,
+                entity_instance.width as f32,
+            ),
+            friction: Friction::new(FRICTION),
+            restitution: Restitution::new(RESTITUTION),
+            ..default()
+        }
+    }
 }
 
 #[derive(Component, Default, Reflect)]
@@ -76,11 +104,11 @@ impl Controller {
     fn apply(&mut self, linear_velocity: &mut LinearVelocity, delta: f32) {
         self.action
             .as_ref()
-            .inspect(|a| Self::__apply(linear_velocity, delta, a));
+            .inspect(|a| Self::_apply(linear_velocity, delta, a));
         self.action.take();
     }
 
-    fn __apply(linear_velocity: &mut LinearVelocity, delta: f32, action: &WalkAction) {
+    fn _apply(linear_velocity: &mut LinearVelocity, delta: f32, action: &WalkAction) {
         let direction_vector = action
             .direction
             .map(|d| d.as_vec3())
@@ -163,10 +191,15 @@ fn movement(mut controller: Single<&mut Controller, With<Player>>, kb: Res<Butto
         None
     };
 
+    let acc_multiple = direction.map_or(1., |a| match a {
+        Dir3::Y => ACC_MULTIPLE_UPWARDS,
+        _ => 1.,
+    });
+
     controller.action(WalkAction {
         direction,
         speed: SPEED,
-        acceleration: ACCELERATION,
+        acceleration: ACCELERATION * acc_multiple,
     })
 }
 
