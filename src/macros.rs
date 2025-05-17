@@ -15,3 +15,12 @@ macro_rules! debug_value {
         }
     };
 }
+
+#[macro_export]
+macro_rules! register_types {
+    ($app:expr, $($t:ty),*) => {
+        $(
+            $app.register_type::<$t>();
+        )*
+    }
+}

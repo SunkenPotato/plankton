@@ -1,4 +1,5 @@
 pub mod macros;
+pub mod movement;
 pub mod player;
 pub mod world;
 
@@ -6,18 +7,20 @@ use avian2d::{PhysicsPlugins, prelude::PhysicsDebugPlugin};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::LdtkPlugin;
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
+use movement::MovementPlugin;
 use player::PlayerPlugin;
 use world::WorldPlugin;
 
 pub static IS_DEBUG: bool = cfg!(debug_assertions);
+pub const PHYSICS_SCHEDULE: FixedPostUpdate = FixedPostUpdate;
 
 fn main() -> AppExit {
     let mut app = App::new();
 
     app.add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(LdtkPlugin)
-        .add_plugins((PlayerPlugin, WorldPlugin))
-        .add_plugins(PhysicsPlugins::default());
+        .add_plugins((PlayerPlugin, WorldPlugin, MovementPlugin))
+        .add_plugins(PhysicsPlugins::new(PHYSICS_SCHEDULE));
 
     if IS_DEBUG {
         warn!("This game was built for debug!");
@@ -28,7 +31,7 @@ fn main() -> AppExit {
                 enable_multipass_for_primary_context: true,
             },
             WorldInspectorPlugin::new(),
-            PhysicsDebugPlugin::default(),
+            PhysicsDebugPlugin::new(PHYSICS_SCHEDULE),
         ));
     }
 

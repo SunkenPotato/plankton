@@ -1,4 +1,4 @@
-use avian2d::prelude::{Collider, Friction, Restitution, RigidBody};
+use avian2d::prelude::{Collider, CollisionMargin, Friction, LockedAxes, Restitution, RigidBody};
 use bevy::{
     app::{Plugin, Startup},
     asset::AssetServer,
@@ -49,10 +49,7 @@ fn spawn_world(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 #[derive(Component, Default)]
-struct TileMarker;
-
-#[derive(Component, Default)]
-struct PhysicsBundleMarker;
+pub struct TileMarker;
 
 #[derive(Bundle, Default)]
 struct TileBundle {
@@ -62,6 +59,38 @@ struct TileBundle {
     friction: Friction,
     restitution: Restitution,
     ig_val: IntGridValue,
+}
+
+#[derive(Bundle, Default)]
+pub struct PhysicsBundle {
+    collider: Collider,
+    rigid_body: RigidBody,
+    friction: Friction,
+    restitution: Restitution,
+    collision_margin: CollisionMargin,
+    locked_axes: LockedAxes,
+}
+
+impl PhysicsBundle {
+    pub fn new(
+        collider: Collider,
+        rigid_body: RigidBody,
+        friction: f32,
+        restitution: f32,
+        lock_axes: bool,
+    ) -> Self {
+        Self {
+            collider,
+            rigid_body,
+            friction: Friction::new(friction),
+            restitution: Restitution::new(restitution),
+            locked_axes: match lock_axes {
+                true => LockedAxes::ROTATION_LOCKED,
+                false => LockedAxes::new(),
+            },
+            collision_margin: CollisionMargin(0.01),
+        }
+    }
 }
 
 #[derive(Component, Reflect, Default, Debug)]
